@@ -1897,7 +1897,7 @@ def load_custom_nodes(public_mark: str = '_public/'):
     node_import_times = []
     to_install_possible_modules = {}
 
-    for custom_node_path in sorted(node_paths, key=lambda x: public_mark in x):
+    for custom_node_path in sorted(node_paths, key=lambda x: public_mark in x, reverse=True):
         possible_modules = os.listdir(os.path.realpath(custom_node_path))
         if "__pycache__" in possible_modules:
             possible_modules.remove("__pycache__")
