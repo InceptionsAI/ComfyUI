@@ -1,12 +1,9 @@
-from inspect import isfunction
 import math
 import torch
 import torch.nn.functional as F
 from torch import nn, einsum
 from einops import rearrange, repeat
 from typing import Optional, Any
-from functools import partial
-
 
 from .diffusionmodules.util import checkpoint, AlphaBlender, timestep_embedding
 from .sub_quadratic_attention import efficient_dot_product_attention
@@ -117,7 +114,12 @@ def attention_basic(q, k, v, heads, mask=None):
             mask = repeat(mask, 'b j -> (b h) () j', h=h)
             sim.masked_fill_(~mask, max_neg_value)
         else:
-            sim += mask
+            if len(mask.shape) == 2:
+                bs = 1
+            else:
+                bs = mask.shape[0]
+            mask = mask.reshape(bs, -1, mask.shape[-2], mask.shape[-1]).expand(b, heads, -1, -1).reshape(-1, mask.shape[-2], mask.shape[-1])
+            sim.add_(mask)
 
     # attention, what we cannot get enough of
     sim = sim.softmax(dim=-1)
@@ -168,6 +170,13 @@ def attention_sub_quad(query, key, value, heads, mask=None):
     if query_chunk_size is None:
         query_chunk_size = 512
 
+    if mask is not None:
+        if len(mask.shape) == 2:
+            bs = 1
+        else:
+            bs = mask.shape[0]
+        mask = mask.reshape(bs, -1, mask.shape[-2], mask.shape[-1]).expand(b, heads, -1, -1).reshape(-1, mask.shape[-2], mask.shape[-1])
+
     hidden_states = efficient_dot_product_attention(
         query,
         key,
@@ -177,6 +186,7 @@ def attention_sub_quad(query, key, value, heads, mask=None):
         kv_chunk_size_min=kv_chunk_size_min,
         use_checkpoint=False,
         upcast_attention=upcast_attention,
+        mask=mask,
     )
 
     hidden_states = hidden_states.to(dtype)
@@ -225,6 +235,13 @@ def attention_split(q, k, v, heads, mask=None):
         raise RuntimeError(f'Not enough memory, use lower resolution (max approx. {max_res}x{max_res}). '
                             f'Need: {mem_required/64/gb:0.1f}GB free, Have:{mem_free_total/gb:0.1f}GB free')
 
+    if mask is not None:
+        if len(mask.shape) == 2:
+            bs = 1
+        else:
+            bs = mask.shape[0]
+        mask = mask.reshape(bs, -1, mask.shape[-2], mask.shape[-1]).expand(b, heads, -1, -1).reshape(-1, mask.shape[-2], mask.shape[-1])
+
     # print("steps", steps, mem_required, mem_free_total, modifier, q.element_size(), tensor_size)
     first_op_done = False
     cleared_cache = False
@@ -238,6 +255,12 @@ def attention_split(q, k, v, heads, mask=None):
                         s1 = einsum('b i d, b j d -> b i j', q[:, i:end].float(), k.float()) * scale
                 else:
                     s1 = einsum('b i d, b j d -> b i j', q[:, i:end], k) * scale
+
+                if mask is not None:
+                    if len(mask.shape) == 2:
+                        s1 += mask[i:end]
+                    else:
+                        s1 += mask[:, i:end]
 
                 s2 = s1.softmax(dim=-1).to(v.dtype)
                 del s1
@@ -294,11 +317,14 @@ def attention_xformers(q, k, v, heads, mask=None):
         (q, k, v),
     )
 
-    # actually compute the attention, what we cannot get enough of
-    out = xformers.ops.memory_efficient_attention(q, k, v, attn_bias=None)
+    if mask is not None:
+        pad = 8 - q.shape[1] % 8
+        mask_out = torch.empty([q.shape[0], q.shape[1], q.shape[1] + pad], dtype=q.dtype, device=q.device)
+        mask_out[:, :, :mask.shape[-1]] = mask
+        mask = mask_out[:, :, :mask.shape[-1]]
 
-    if exists(mask):
-        raise NotImplementedError
+    out = xformers.ops.memory_efficient_attention(q, k, v, attn_bias=mask)
+
     out = (
         out.unsqueeze(0)
         .reshape(b, heads, -1, dim_head)
@@ -323,7 +349,6 @@ def attention_pytorch(q, k, v, heads, mask=None):
 
 
 optimized_attention = attention_basic
-optimized_attention_masked = attention_basic
 
 if model_management.xformers_enabled():
     print("Using xformers cross attention")
@@ -339,15 +364,18 @@ else:
         print("Using sub quadratic optimization for cross attention, if you have memory or speed issues try using: --use-split-cross-attention")
         optimized_attention = attention_sub_quad
 
-if model_management.pytorch_attention_enabled():
-    optimized_attention_masked = attention_pytorch
+optimized_attention_masked = optimized_attention
 
-def optimized_attention_for_device(device, mask=False):
-    if device == torch.device("cpu"): #TODO
+def optimized_attention_for_device(device, mask=False, small_input=False):
+    if small_input:
         if model_management.pytorch_attention_enabled():
-            return attention_pytorch
+            return attention_pytorch #TODO: need to confirm but this is probably slightly faster for small inputs in all cases
         else:
             return attention_basic
+
+    if device == torch.device("cpu"):
+        return attention_sub_quad
+
     if mask:
         return optimized_attention_masked
 
