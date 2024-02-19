@@ -126,7 +126,7 @@ export async function getWorkflow() {
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
 	const workflowId = urlParams.get('workflow');
-	if (workflowId && needLoadPrebuiltWorkflow(workflowId)) {
+	if (workflowId) {
 		await fetch('../workflows/' + workflowId + '/' + workflowId + '.json').then(
 			response => {
 				flow_json = response.json()
