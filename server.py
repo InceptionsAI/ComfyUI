@@ -26,6 +26,7 @@ import comfy.utils
 import comfy.model_management
 
 from app.user_manager import UserManager
+import re
 
 toxic_words = [
     "2g1c",
@@ -430,6 +431,15 @@ toxic_words = [
     "yiffy",
     "zoophilia"
 ]
+
+# Function to find toxic words in text
+def find_toxic_words(texts, toxic_words):
+    found_toxic_words = set()
+    lower_text = texts.lower()
+    for word in toxic_words:
+        if re.search(r'\b' + re.escape(word.lower()) + r'\b', lower_text):
+            found_toxic_words.add(word)
+    return found_toxic_words
 
 class BinaryEventTypes:
     PREVIEW_IMAGE = 1
@@ -857,11 +867,13 @@ class PromptServer():
             out_string = ""
             json_data =  await request.json()
             json_data = self.trigger_on_prompt(json_data)
-
-            # Check for presence of toxic words in the JSON data
-            if any(toxic in str(json_data).lower() for toxic in toxic_words):
+            
+            found_toxic_words = find_toxic_words(str(json_data), toxic_words)
+            if found_toxic_words:
                 logging.info(f"Toxic content detected, {json_data}")
                 return web.json_response({}, status=200)
+            else:
+                print("No toxic words found.")
 
             if "number" in json_data:
                 number = float(json_data['number'])
