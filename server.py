@@ -874,7 +874,7 @@ class PromptServer():
                 logging.info(f"Toxic content detected, {json_data}")
                 return web.json_response({}, status=200)
             else:
-                print("No toxic words found.")
+                print(f"Toxic content not detected. {json_data}")
 
             if "number" in json_data:
                 number = float(json_data['number'])
