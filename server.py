@@ -436,9 +436,13 @@ toxic_words = [
 # Function to find toxic words in text
 def find_toxic_words(texts, toxic_words):
     found_toxic_words = set()
-    lower_text = texts.lower()
-    for word in toxic_words:
-        if re.search(r'\b' + re.escape(word.lower()) + r'\b', lower_text):
+    # Normalize the text to lower case for case insensitive comparison
+    lower_text = text.lower()
+    # Split the text on any non-word character, including underscores
+    words = re.split(r'\W+', lower_text)
+    # Check each word in the split result
+    for word in words:
+        if word in toxic_words:
             found_toxic_words.add(word)
     return found_toxic_words
 
