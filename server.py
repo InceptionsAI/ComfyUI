@@ -437,7 +437,7 @@ toxic_words = [
 def find_toxic_words(texts, toxic_words):
     found_toxic_words = set()
     # Normalize the text to lower case for case insensitive comparison
-    lower_text = text.lower()
+    lower_text = texts.lower()
     # Split the text on any non-word character, including underscores
     words = re.split(r'\W+', lower_text)
     # Check each word in the split result
