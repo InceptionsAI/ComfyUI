@@ -30,6 +30,13 @@ import re
 
 toxic_words = [
     "naked",
+    "vaginal",
+    "child",
+    "children",
+    "penetration",
+    "spread",
+    "shaved",
+    "undressed",
     "2g1c",
     "2 girls 1 cup",
     "acrotomophilia",
