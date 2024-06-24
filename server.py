@@ -29,6 +29,8 @@ from app.user_manager import UserManager
 import re
 
 toxic_words = [
+    "graffiti",
+    "miners",
     "naked",
     "vaginal",
     "breasts",
