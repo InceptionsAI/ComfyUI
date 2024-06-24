@@ -31,6 +31,8 @@ import re
 toxic_words = [
     "naked",
     "vaginal",
+    "breasts",
+    "breast",
     "child",
     "children",
     "penetration",
