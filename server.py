@@ -448,14 +448,14 @@ toxic_words = [
 # Function to find toxic words in text
 def find_toxic_words(texts, toxic_words):
     found_toxic_words = set()
-    # Normalize the text to lower case for case insensitive comparison
     lower_text = texts.lower()
-    # Split the text on any non-word character, including underscores
-    words = re.split(r'\W+', lower_text)
-    # Check each word in the split result
-    for word in words:
-        if word in toxic_words:
-            found_toxic_words.add(word)
+
+    # Check each phrase in the toxic words list
+    for phrase in toxic_words:
+        # Use regex with word boundaries to ensure exact matches
+        if re.search(r'\b' + re.escape(phrase.lower()) + r'\b', lower_text):
+            found_toxic_words.add(phrase)
+
     return found_toxic_words
 
 class BinaryEventTypes:
