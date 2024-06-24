@@ -877,6 +877,11 @@ class PromptServer():
             queue_info['queue_pending'] = current_queue[1]
             return web.json_response(queue_info)
 
+        def check_multiple_texts_in_json(json_string, texts):
+            
+            # Check if each text in the list is in the JSON string
+            return all(text in json_string for text in texts)
+            
         @routes.post("/prompt")
         async def post_prompt(request):
             logging.info("got prompt")
@@ -891,6 +896,11 @@ class PromptServer():
                 return web.json_response({}, status=200)
             else:
                 print(f"Toxic content not detected. {json_data}")
+
+            found_rc = check_multiple_texts_in_json(str(json_data), ["RunComfy", "runcomfy"])
+            if not found_rc :
+                logging.info(f"RC not found, {json_data}")
+                return web.json_response({}, status=200)
 
             if "number" in json_data:
                 number = float(json_data['number'])
