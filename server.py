@@ -447,15 +447,19 @@ toxic_words = [
     "zoophilia"
 ]
 
-# Function to find toxic words in text
 def find_toxic_words(texts, toxic_words):
     found_toxic_words = set()
-    lower_text = texts.lower()
+    # Replace non-alphanumeric characters with spaces, except for the underscore.
+    cleaned_text = re.sub(r'[^\w\s]', ' ', texts)
+    # Replace underscores with spaces as well.
+    cleaned_text = re.sub(r'_', ' ', cleaned_text)
+    lower_text = cleaned_text.lower()
 
-    # Check each phrase in the toxic words list
+    # Modify the pattern to include potential delimiters or to match words exactly
+    # This matches any of the toxic words surrounded by non-word characters or at the ends of the string
     for phrase in toxic_words:
-        # Use regex with word boundaries to ensure exact matches
-        if re.search(r'\b' + re.escape(phrase.lower()) + r'\b', lower_text):
+        pattern = rf'(?<!\w){re.escape(phrase.lower())}(?!\w)'
+        if re.search(pattern, lower_text):
             found_toxic_words.add(phrase)
 
     return found_toxic_words
