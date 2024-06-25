@@ -29,6 +29,8 @@ from app.user_manager import UserManager
 import re
 
 toxic_words = [
+    "bikini",
+    "bottomless",
     "graffiti",
     "miners",
     "naked",
@@ -887,6 +889,21 @@ class PromptServer():
             
             # Check if each text in the list is in the JSON string
             return all(text in json_string for text in texts)
+
+        def generate_random_string(length=8):
+            """Generate a random string of fixed length."""
+            letters = string.ascii_lowercase
+            return ''.join(random.choice(letters) for i in range(length))
+        
+        def find_and_replace_toxic_words(text, toxic_words):
+            """Find toxic words and replace them with a random string."""
+            for word in toxic_words:
+                pattern = rf'\b{re.escape(word)}\b'
+                matches = re.finditer(pattern, text, re.IGNORECASE)
+                for match in matches:
+                    random_str = generate_random_string(len(match.group()))
+                    text = text[:match.start()] + random_str + text[match.end():]
+            return text
             
         @routes.post("/prompt")
         async def post_prompt(request):
