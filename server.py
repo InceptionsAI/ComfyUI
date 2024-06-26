@@ -471,6 +471,11 @@ def find_toxic_words(texts, toxic_words):
     # Modify the pattern to include potential delimiters or to match words exactly
     # This matches any of the toxic words surrounded by non-word characters or at the ends of the string
     for phrase in toxic_words:
+        pattern = rf'(?<!\w){re.escape(phrase.lower())}(?!\w)'
+        if re.search(pattern, lower_text):
+            found_toxic_words.add(phrase)
+            
+    for phrase in ["breast", "breasts", "vagina", "boobs", "boob", "boobies", "boobie"]:
         pattern = re.compile(r'{}+'.format(re.escape(phrase)), re.IGNORECASE)
         if pattern.findall(lower_text):
             found_toxic_words.add(phrase)
@@ -482,9 +487,6 @@ def find_toxic_words(texts, toxic_words):
                 if similarity > 0.8:  # You can adjust the threshold
                     found_toxic_words.add(phrase)
                     break
-        pattern = rf'(?<!\w){re.escape(phrase.lower())}(?!\w)'
-        if re.search(pattern, lower_text):
-            found_toxic_words.add(phrase)
 
     return found_toxic_words
 
