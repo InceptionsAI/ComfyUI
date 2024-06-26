@@ -30,6 +30,13 @@ import re
 
 toxic_words = [
     "breats", "naaked", "boobies", "naaaked", "booobies", "clothing", "desnuda",
+    "uncovered",
+    "classroom",
+    "class-room",
+    "classrooom",
+    "classsroom",
+    "not covered",
+    "breat",
     "bed",
     "loli",
     "bikini",
