@@ -27,7 +27,7 @@ import comfy.model_management
 
 from app.user_manager import UserManager
 import re
-import diff
+import difflib
 
 toxic_words = [
     "breats", "naaked", "boobies", "naaaked", "booobies", "clothing", "desnuda",
