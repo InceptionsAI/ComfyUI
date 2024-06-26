@@ -29,6 +29,7 @@ from app.user_manager import UserManager
 import re
 
 toxic_words = [
+    "breats", "naaked", "boobies", "naaaked", "booobies", "clothing", 
     "bed",
     "loli",
     "bikini",
