@@ -28,8 +28,25 @@ import comfy.model_management
 from app.user_manager import UserManager
 import re
 import difflib
+from datetime import datetime
 
 toxic_words = [
+    "bangs",
+    "bang",
+    "no shirt",
+    "no shirts",
+    "naakte borsten",
+    "nuude",
+    "no brreeasts",
+    "nudist",
+    "undergarments",
+    "underclothings",
+    "undergarment",
+    "underclothing",
+    "bust",
+    "bosom",
+    "belly dancer",
+    "bustless",
     "making love",
     "make love",
     "make",
@@ -957,15 +974,17 @@ class PromptServer():
             json_data = self.trigger_on_prompt(json_data)
             
             found_toxic_words = find_toxic_words(str(json_data), toxic_words)
+            current_time_iso8601 = datetime.now().isoformat()
+
             if found_toxic_words:
-                logging.info(f"Toxic content detected, {json_data}")
+                logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
                 return web.json_response({}, status=200)
             else:
-                print(f"Toxic content not detected. {json_data}")
+                print(f"Toxic content not detected, {current_time_iso8601}, {json_data}")
 
             found_rc = check_multiple_texts_in_json(str(json_data), ["RunComfy", "runcomfy"])
             if not found_rc :
-                logging.info(f"RC not found, {json_data}")
+                logging.info(f"RC not found, {current_time_iso8601}, {json_data}")
                 return web.json_response({}, status=200)
 
             if "number" in json_data:
