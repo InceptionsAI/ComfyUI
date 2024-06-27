@@ -30,6 +30,15 @@ import re
 import difflib
 
 toxic_words = [
+    "making love",
+    "make love",
+    "make",
+    "sexual",
+    "sexy",
+    "intercourse",
+    "coitus",
+    "no cloths",
+    "no cloth",
     "no pant",
     "no pants",
     "no tops",
