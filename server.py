@@ -30,6 +30,10 @@ import re
 import difflib
 
 toxic_words = [
+    "no pant",
+    "no pants",
+    "no tops",
+    "no top",
     "no garb",
     "buttox",
     "unclothed",
