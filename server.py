@@ -30,6 +30,11 @@ import re
 import difflib
 
 toxic_words = [
+    "no garb",
+    "buttox",
+    "unclothed",
+    "toplessness",
+    "pantless",
     "bra",
     "breats", "naaked", "boobies", "naaaked", "booobies", "clothing", "desnuda",
     "uncovered",
