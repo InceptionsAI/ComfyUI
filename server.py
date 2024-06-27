@@ -31,6 +31,25 @@ import difflib
 from datetime import datetime
 
 toxic_words = [
+    "licking",
+    "lick",
+    "stocking",
+    "stockings",
+    "disrobed",
+    "lingerie",
+    "creampies",
+    "creampie",
+    "creampi",
+    "cream",
+    "desnudaa",
+    "braas",
+    "nnude",
+    "no cllothing",
+    "uncovered",
+    "shemale",
+    "bulge",
+    "futanari",
+    "hermaphroditism",
     "nipple",
     "nipples",
     "see through",
@@ -516,7 +535,7 @@ def find_toxic_words(texts, toxic_words):
         if re.search(pattern, lower_text):
             found_toxic_words.add(phrase)
             
-    for phrase in ["breast", "breasts", "vagina", "boobs", "boob", "boobies", "boobie"]:
+    for phrase in ["breast", "breasts", "vagina", "boobs", "boob", "boobies", "boobie", "nude", "clothing"]:
         pattern = re.compile(r'{}+'.format(re.escape(phrase)), re.IGNORECASE)
         if pattern.findall(lower_text):
             found_toxic_words.add(phrase)
