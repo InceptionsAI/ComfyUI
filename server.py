@@ -31,6 +31,9 @@ import difflib
 from datetime import datetime
 
 toxic_words = [
+    "top less",
+    "topp less",
+    "top lesss",
     "transparent",
     "arab",
     "arabian",
