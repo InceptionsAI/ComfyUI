@@ -31,6 +31,7 @@ import difflib
 from datetime import datetime
 
 toxic_words = [
+    "no clothe",
     "belly",
     "waist",
     "sfw",
