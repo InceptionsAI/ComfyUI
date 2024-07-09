@@ -29,6 +29,7 @@ from app.user_manager import UserManager
 import re
 import difflib
 from datetime import datetime
+from googleapiclient import discovery
 
 toxic_words = [
     "no clothe",
@@ -1048,7 +1049,14 @@ class PromptServer():
             found_toxic_words = find_toxic_words(str(json_data), toxic_words)
             current_time_iso8601 = datetime.now().isoformat()
 
+            """
             if found_toxic_words:
+                logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
+                return web.json_response({}, status=200)
+            else:
+                print(f"Toxic content not detected, {current_time_iso8601}, {json_data}")
+            """
+            if (self.is_toxic_text(json_data)):
                 logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
                 return web.json_response({}, status=200)
             else:
@@ -1258,3 +1266,38 @@ class PromptServer():
                 logging.warning(traceback.format_exc())
 
         return json_data
+        
+        
+
+    def is_toxic_text(self, json_data):
+
+        API_KEY = 'AIzaSyAA5rU5BSk9T8Mv2vTm714B5yr2xHU35mg'
+
+        client = discovery.build(
+            "commentanalyzer",
+            "v1alpha1",
+            developerKey=API_KEY,
+            discoveryServiceUrl="https://commentanalyzer.googleapis.com/$discovery/rest?version=v1alpha1",
+            static_discovery=False,
+        )
+
+        analyze_request = {
+            'comment': { 'text': json_data['prompt']['6']['inputs']['text'] },
+            'requestedAttributes': {'TOXICITY': {}}
+        }
+        logging.info("check1")
+        logging.info(json_data['prompt']['6']['inputs']['text'])
+
+        response = client.comments().analyze(body=analyze_request).execute()
+        #print(json.dumps(response, indent=2))
+        #print(response)
+        try:
+            #response_data = response.json()
+            toxicity_score = response['attributeScores']['TOXICITY']['summaryScore']['value']
+            if (toxicity_score < 0.3):
+                return False
+            else:
+                return True
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
