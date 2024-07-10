@@ -10,6 +10,7 @@ Pillow
 scipy
 tqdm
 psutil
+google-api-python-client
 
 #non essential dependencies:
 kornia>=0.7.1
