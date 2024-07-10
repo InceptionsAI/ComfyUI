@@ -1285,14 +1285,10 @@ class PromptServer():
             'comment': { 'text': json_data['prompt']['6']['inputs']['text'] },
             'requestedAttributes': {'TOXICITY': {}}
         }
-        logging.info("check1")
-        logging.info(json_data['prompt']['6']['inputs']['text'])
 
         response = client.comments().analyze(body=analyze_request).execute()
-        #print(json.dumps(response, indent=2))
-        #print(response)
+
         try:
-            #response_data = response.json()
             toxicity_score = response['attributeScores']['TOXICITY']['summaryScore']['value']
             if (toxicity_score < 0.3):
                 return False
