@@ -1052,18 +1052,16 @@ class PromptServer():
             found_toxic_words = find_toxic_words(str(json_data), toxic_words)
             current_time_iso8601 = datetime.now().isoformat()
 
-            """
             if found_toxic_words:
                 logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
                 return web.json_response({}, status=200)
             else:
                 print(f"Toxic content not detected, {current_time_iso8601}, {json_data}")
-            """
-            if (self.is_toxic_text(json_data)):
-                logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
-                return web.json_response({}, status=200)
-            else:
-                print(f"Toxic content not detected, {current_time_iso8601}, {json_data}")
+            # if (self.is_toxic_text(json_data)):
+            #     logging.info(f"Toxic content detected, {current_time_iso8601}, {json_data}")
+            #     return web.json_response({}, status=200)
+            # else:
+            #     print(f"Toxic content not detected, {current_time_iso8601}, {json_data}")
 
             found_rc = check_multiple_texts_in_json(str(json_data), ["RunComfy", "runcomfy"])
             if not found_rc :
