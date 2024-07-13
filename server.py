@@ -587,7 +587,7 @@ def find_toxic_words(texts, toxic_words):
         if re.search(pattern, lower_text):
             found_toxic_words.add(phrase)
             
-    for phrase in ["breast", "breasts", "vagina", "boobs", "boob", "boobies", "boobie", "nude", "clothing"]:
+    for phrase in ["breast", "breasts", "vagina", "boobs", "boob", "boobies", "boobie", "nude", "clothing", "cock", "suck", "sucking", "fuck", "fucking"]:
         pattern = re.compile(r'{}+'.format(re.escape(phrase)), re.IGNORECASE)
         if pattern.findall(lower_text):
             found_toxic_words.add(phrase)
