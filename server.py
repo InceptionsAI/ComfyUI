@@ -599,6 +599,7 @@ def find_toxic_words(texts, toxic_words):
     found_toxic_words = set()
     # Replace non-alphanumeric characters with spaces, except for the underscore.
     cleaned_text = re.sub(r'[^\w\s]', ' ', texts)
+    cleaned_text = re.sub(r'\n', ' ', cleaned_text)
     # Replace underscores with spaces as well.
     cleaned_text = re.sub(r'_', ' ', cleaned_text)
     lower_text = cleaned_text.lower()
