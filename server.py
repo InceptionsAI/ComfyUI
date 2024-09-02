@@ -32,6 +32,10 @@ from datetime import datetime
 from googleapiclient import discovery
 
 toxic_words = [
+    "trump",
+    "biden",
+    "kamala",
+    "shot",
     "bosomy",
     "curvy",
     "curvey",
