@@ -32,6 +32,13 @@ from datetime import datetime
 from googleapiclient import discovery
 
 toxic_words = [
+    "barely",
+    "bare",
+    "only with",
+    "only in",
+    "bodysuit",
+    "miniskirt",
+    "cleavage",
     "plugsuit",
     "bosomed",
     "fetish",
