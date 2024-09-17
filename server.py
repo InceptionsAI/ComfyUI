@@ -32,6 +32,17 @@ from datetime import datetime
 from googleapiclient import discovery
 
 toxic_words = [
+    "strippers",
+    "striper",
+    "b00ps",
+    "stripper",
+    "stripteaser",
+    "striptease",
+    "glasses",
+    "secretary",
+    "defect",
+    "defects",
+    "niррlеs",
     "black",
     "toes",
     "fingers",
