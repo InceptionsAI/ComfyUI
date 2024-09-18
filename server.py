@@ -42,6 +42,8 @@ toxic_words = [
     "strippers",
     "striper",
     "b00ps",
+    "bооbs",
+    "boob",
     "stripper",
     "stripteaser",
     "striptease",
