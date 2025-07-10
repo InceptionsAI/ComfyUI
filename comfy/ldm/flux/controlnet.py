@@ -6,9 +6,7 @@ import math
 from torch import Tensor, nn
 from einops import rearrange, repeat
 
-from .layers import (DoubleStreamBlock, EmbedND, LastLayer,
-                                 MLPEmbedder, SingleStreamBlock,
-                                 timestep_embedding)
+from .layers import (timestep_embedding)
 
 from .model import Flux
 import comfy.ldm.common_dit
@@ -52,7 +50,7 @@ class MistolineControlnetBlock(nn.Module):
 
 
 class ControlNetFlux(Flux):
-    def __init__(self, latent_input=False, num_union_modes=0, mistoline=False, image_model=None, dtype=None, device=None, operations=None, **kwargs):
+    def __init__(self, latent_input=False, num_union_modes=0, mistoline=False, control_latent_channels=None, image_model=None, dtype=None, device=None, operations=None, **kwargs):
         super().__init__(final_layer=False, dtype=dtype, device=device, operations=operations, **kwargs)
 
         self.main_model_double = 19
@@ -80,7 +78,12 @@ class ControlNetFlux(Flux):
 
         self.gradient_checkpointing = False
         self.latent_input = latent_input
-        self.pos_embed_input = operations.Linear(self.in_channels, self.hidden_size, bias=True, dtype=dtype, device=device)
+        if control_latent_channels is None:
+            control_latent_channels = self.in_channels
+        else:
+            control_latent_channels *= 2 * 2 #patch size
+
+        self.pos_embed_input = operations.Linear(control_latent_channels, self.hidden_size, bias=True, dtype=dtype, device=device)
         if not self.latent_input:
             if self.mistoline:
                 self.input_cond_block = MistolineCondDownsamplBlock(dtype=dtype, device=device, operations=operations)
@@ -117,6 +120,11 @@ class ControlNetFlux(Flux):
     ) -> Tensor:
         if img.ndim != 3 or txt.ndim != 3:
             raise ValueError("Input img and txt tensors must have 3 dimensions.")
+
+        if y is None:
+            y = torch.zeros((img.shape[0], self.params.vec_in_dim), device=img.device, dtype=img.dtype)
+        else:
+            y = y[:, :self.params.vec_in_dim]
 
         # running on sequences img
         img = self.img_in(img)
@@ -171,7 +179,7 @@ class ControlNetFlux(Flux):
             out["output"] = out_output[:self.main_model_single]
         return out
 
-    def forward(self, x, timesteps, context, y, guidance=None, hint=None, **kwargs):
+    def forward(self, x, timesteps, context, y=None, guidance=None, hint=None, **kwargs):
         patch_size = 2
         if self.latent_input:
             hint = comfy.ldm.common_dit.pad_to_patch_size(hint, (patch_size, patch_size))
