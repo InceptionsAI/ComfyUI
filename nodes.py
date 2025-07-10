@@ -2203,7 +2203,7 @@ def init_external_custom_nodes(public_mark: str = 'public/'):
         time_before = time.perf_counter()
         success = load_custom_node(module_path, base_node_names, module_parent="custom_nodes")
         node_import_times.append((time.perf_counter() - time_before, module_path, success))
-        
+
     if len(node_import_times) > 0:
         logging.info("\nImport times for custom nodes:")
         for n in sorted(node_import_times):
