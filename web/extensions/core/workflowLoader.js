@@ -60,18 +60,7 @@ app.registerExtension({
     
     async init(app) {
         console.log("WorkflowLoader extension initialized");
-        if (!this.isRunComfyHelperPresent()) {
-            this.overrideTemplateSystem(app);
-        }
-    },
-    
-    isRunComfyHelperPresent() {
-        const runComfyExt = app.extensions?.find(ext => ext.name === "runcomfy.Workflows");
-        if (runComfyExt) {
-            console.log("RunComfy-Helper detected, will coordinate with it");
-            return true;
-        }
-        return false;
+        this.overrideTemplateSystem(app);
     },
     
     overrideTemplateSystem(app) {
@@ -100,19 +89,42 @@ app.registerExtension({
         
         if (workflowId) {
             console.log(`URL parameter workflow requested: ${workflowId}`);
-            if (this.isRunComfyHelperPresent()) {
-                console.log("Coordinating with RunComfy-Helper for workflow loading");
+            
+            // Check if RunComfy-Helper is present
+            const runComfyExt = app.extensions?.find(ext => ext.name === "runcomfy.Workflows");
+            if (runComfyExt) {
+                console.log("Using RunComfy-Helper to load workflow");
                 localStorage.removeItem('runcomfy.has_preloaded_workflow');
+                
+                // Override the API call to use workflow name
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options) {
+                    if (url && url.includes('/runcomfy/workflows') && url.includes('name=undefined')) {
+                        url = url.replace('name=undefined', `name=${workflowId}.json`);
+                    }
+                    return originalFetch.call(this, url, options);
+                };
+                
+                // Trigger RunComfy-Helper's workflow loading
+                const customWorkflow = await fetch(`/runcomfy/workflows?name=${workflowId}.json`);
+                if (customWorkflow.ok) {
+                    const workflowData = await customWorkflow.json();
+                    await app.loadGraphData(workflowData);
+                    localStorage.setItem('runcomfy.has_preloaded_workflow', true);
+                    console.log("Workflow loaded via RunComfy-Helper");
+                }
+                
+                // Restore original fetch
+                window.fetch = originalFetch;
                 return;
             }
             
-            // Fallback
             const workflow = await getWorkflow();
             if (workflow) {
                 try {
                     app.graph.clear();
                     await app.loadGraphData(workflow, true, { source: 'url_params' });
-                    console.log("Workflow loaded successfully via fallback");
+                    console.log("Workflow loaded successfully");
                 } catch (error) {
                     console.error("Failed to load workflow:", error);
                     if (app.ui && app.ui.dialog) {
