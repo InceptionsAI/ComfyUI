@@ -1505,6 +1505,13 @@ class PromptServer():
                 web.static('/docs', embedded_docs_path)
             ])
 
+        # Add route for workflow loading
+        workflows_path = os.path.join(self.web_root, "workflows")
+        if os.path.exists(workflows_path):
+            self.app.add_routes([
+                web.static('/workflows', workflows_path, follow_symlinks=True),
+            ])
+
         self.app.add_routes([
             web.static('/', self.web_root, follow_symlinks=True),
         ])
