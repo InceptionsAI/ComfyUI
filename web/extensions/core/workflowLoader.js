@@ -58,30 +58,47 @@ async function getWorkflow() {
 app.registerExtension({
     name: "Comfy.WorkflowLoader",
     
-    async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        // This runs before node registration
+    async init(app) {
+        console.log("WorkflowLoader extension initialized");
+        this.overrideTemplateSystem(app);
     },
     
-    async init(app) {
-        // This runs after the app is initialized
-        console.log("WorkflowLoader extension initialized");
+    overrideTemplateSystem(app) {
+        const originalLoadGraphData = app.loadGraphData;
+        
+        // Override loadGraphData to check for our workflow first
+        app.loadGraphData = async function(graphData, clean, workflow_info) {
+            const isTemplateLoading = workflow_info && workflow_info.source === 'template';
+            
+
+            if (!isTemplateLoading) {
+                const urlWorkflow = await getWorkflow();
+                if (urlWorkflow) {
+                    console.log("Overriding template with URL workflow");
+                    return await originalLoadGraphData.call(this, urlWorkflow, clean, { source: 'url_params' });
+                }
+            }
+            
+            return await originalLoadGraphData.call(this, graphData, clean, workflow_info);
+        };
     },
     
     async setup(app) {
-        // This runs after nodes are registered but before the UI is ready
         console.log("WorkflowLoader extension setup");
-        
-        // Load workflow from URL parameters
         const workflow = await getWorkflow();
         
         if (workflow) {
-            console.log("Loading workflow from URL parameters");
+            console.log("Loading workflow from URL parameters on setup");
             try {
-                await app.loadGraphData(workflow);
+                app.graph.clear();
+                await app.loadGraphData(workflow, true, { source: 'url_params' });
                 console.log("Workflow loaded successfully");
+                app.ui.settings.setSettingValue("Comfy.UseNewMenu", "Disabled");
             } catch (error) {
                 console.error("Failed to load workflow:", error);
-                app.ui.dialog.show(`Failed to load workflow: ${error.message}`);
+                if (app.ui && app.ui.dialog) {
+                    app.ui.dialog.show(`Failed to load workflow: ${error.message}`);
+                }
             }
         }
     }
