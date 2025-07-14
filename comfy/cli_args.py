@@ -211,6 +211,7 @@ parser.add_argument("--database-url", type=str, default=f"sqlite:///{database_de
 
 parser.add_argument("--workflow", type=str, default=None, help="Load a specific workflow on startup from web/workflows/[workflow]/[workflow].json")
 parser.add_argument("--force-load-workflow", action="store_true", help="Force load the workflow even if it was previously loaded (bypasses localStorage cache)")
+parser.add_argument("--workflows-dir", type=str, default=None, help="Additional directory to search for workflows (e.g., /workspace/comfyui-workflows/runcomfy-comfyui-web)")
 
 if comfy.options.args_parsing:
     args = parser.parse_args()

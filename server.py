@@ -1520,6 +1520,12 @@ class PromptServer():
                 web.static('/workflows', workflows_path, follow_symlinks=True),
             ])
 
+        # Add route for additional workflows directory
+        if args.workflows_dir and os.path.exists(args.workflows_dir):
+            self.app.add_routes([
+                web.static('/external-workflows', args.workflows_dir, follow_symlinks=True),
+            ])
+
         self.app.add_routes([
             web.static('/', self.web_root, follow_symlinks=True),
         ])
