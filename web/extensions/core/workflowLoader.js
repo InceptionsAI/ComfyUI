@@ -103,15 +103,7 @@ app.registerExtension({
             if (this.isRunComfyHelperPresent()) {
                 console.log("Coordinating with RunComfy-Helper for workflow loading");
                 localStorage.removeItem('runcomfy.has_preloaded_workflow');
-                try {
-                    const response = await fetch(`/runcomfy/workflows?name=${workflowId}.json`);
-                    if (response.ok) {
-                        console.log("RunComfy-Helper loads the workflow");
-                        return;
-                    }
-                } catch (error) {
-                    console.log("RunComfy-Helper endpoint not available, using fallback");
-                }
+                return;
             }
             
             // Fallback
