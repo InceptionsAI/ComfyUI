@@ -209,6 +209,9 @@ database_default_path = os.path.abspath(
 )
 parser.add_argument("--database-url", type=str, default=f"sqlite:///{database_default_path}", help="Specify the database URL, e.g. for an in-memory database you can use 'sqlite:///:memory:'.")
 
+parser.add_argument("--workflow", type=str, default=None, help="Load a specific workflow on startup from web/workflows/[workflow]/[workflow].json")
+parser.add_argument("--force-load-workflow", action="store_true", help="Force load the workflow even if it was previously loaded (bypasses localStorage cache)")
+
 if comfy.options.args_parsing:
     args = parser.parse_args()
 else:

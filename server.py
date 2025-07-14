@@ -934,6 +934,14 @@ class PromptServer():
 
         @routes.get("/")
         async def get_root(request):
+            if args.workflow and not request.query_string:
+                workflow_param = f"workflow={args.workflow}"
+                if args.force_load_workflow:
+                    workflow_param += "&force-load=true"
+                
+                redirect_url = f"/?{workflow_param}"
+                return web.Response(status=302, headers={"Location": redirect_url})
+            
             response = web.FileResponse(os.path.join(self.web_root, "index.html"))
             response.headers['Cache-Control'] = 'no-cache'
             response.headers["Pragma"] = "no-cache"
