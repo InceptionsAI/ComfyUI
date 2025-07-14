@@ -1472,6 +1472,47 @@ class PromptServer():
 
             return web.Response(status=200)
 
+        @routes.get("/runcomfy/workflow/{workflow_name}")
+        async def get_runcomfy_workflow(request):
+            """
+            API endpoint for RunComfy-Helper integration
+            Returns workflow JSON for the specified workflow name
+            """
+            workflow_name = request.match_info.get("workflow_name", None)
+            if not workflow_name:
+                return web.Response(status=400, text="Workflow name required")
+            
+            # Search for workflow file
+            search_paths = []
+            if args.workflows_dir and os.path.exists(args.workflows_dir):
+                search_paths.extend([
+                    os.path.join(args.workflows_dir, workflow_name, f"{workflow_name}.json"),
+                    os.path.join(args.workflows_dir, f"{workflow_name}.json")
+                ])
+            
+            # Add default web/workflows path
+            workflows_path = os.path.join(self.web_root, "workflows")
+            if os.path.exists(workflows_path):
+                search_paths.extend([
+                    os.path.join(workflows_path, workflow_name, f"{workflow_name}.json"),
+                    os.path.join(workflows_path, f"{workflow_name}.json")
+                ])
+            for path in search_paths:
+                try:
+                    if os.path.exists(path):
+                        with open(path, 'r', encoding='utf-8') as f:
+                            workflow_data = json.load(f)
+                        
+                        logging.info(f"Serving workflow via RunComfy API: {path}")
+                        return web.json_response(workflow_data)
+                        
+                except Exception as e:
+                    logging.warning(f"Failed to load workflow from {path}: {e}")
+                    continue
+            
+            # No workflow found
+            return web.Response(status=404, text=f"Workflow '{workflow_name}' not found")
+
     async def setup(self):
         timeout = aiohttp.ClientTimeout(total=None) # no timeout
         self.client_session = aiohttp.ClientSession(timeout=timeout)

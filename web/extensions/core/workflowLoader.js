@@ -60,7 +60,18 @@ app.registerExtension({
     
     async init(app) {
         console.log("WorkflowLoader extension initialized");
-        this.overrideTemplateSystem(app);
+        if (!this.isRunComfyHelperPresent()) {
+            this.overrideTemplateSystem(app);
+        }
+    },
+    
+    isRunComfyHelperPresent() {
+        const runComfyExt = app.extensions?.find(ext => ext.name === "runcomfy.Workflows");
+        if (runComfyExt) {
+            console.log("RunComfy-Helper detected, will coordinate with it");
+            return true;
+        }
+        return false;
     },
     
     overrideTemplateSystem(app) {
@@ -69,7 +80,6 @@ app.registerExtension({
         // Override loadGraphData to check for our workflow first
         app.loadGraphData = async function(graphData, clean, workflow_info) {
             const isTemplateLoading = workflow_info && workflow_info.source === 'template';
-            
 
             if (!isTemplateLoading) {
                 const urlWorkflow = await getWorkflow();
@@ -85,19 +95,37 @@ app.registerExtension({
     
     async setup(app) {
         console.log("WorkflowLoader extension setup");
-        const workflow = await getWorkflow();
+        const urlParams = new URLSearchParams(window.location.search);
+        const workflowId = urlParams.get('workflow');
         
-        if (workflow) {
-            console.log("Loading workflow from URL parameters on setup");
-            try {
-                app.graph.clear();
-                await app.loadGraphData(workflow, true, { source: 'url_params' });
-                console.log("Workflow loaded successfully");
-                app.ui.settings.setSettingValue("Comfy.UseNewMenu", "Disabled");
-            } catch (error) {
-                console.error("Failed to load workflow:", error);
-                if (app.ui && app.ui.dialog) {
-                    app.ui.dialog.show(`Failed to load workflow: ${error.message}`);
+        if (workflowId) {
+            console.log(`URL parameter workflow requested: ${workflowId}`);
+            if (this.isRunComfyHelperPresent()) {
+                console.log("Coordinating with RunComfy-Helper for workflow loading");
+                localStorage.removeItem('runcomfy.has_preloaded_workflow');
+                try {
+                    const response = await fetch(`/runcomfy/workflows?name=${workflowId}.json`);
+                    if (response.ok) {
+                        console.log("RunComfy-Helper loads the workflow");
+                        return;
+                    }
+                } catch (error) {
+                    console.log("RunComfy-Helper endpoint not available, using fallback");
+                }
+            }
+            
+            // Fallback
+            const workflow = await getWorkflow();
+            if (workflow) {
+                try {
+                    app.graph.clear();
+                    await app.loadGraphData(workflow, true, { source: 'url_params' });
+                    console.log("Workflow loaded successfully via fallback");
+                } catch (error) {
+                    console.error("Failed to load workflow:", error);
+                    if (app.ui && app.ui.dialog) {
+                        app.ui.dialog.show(`Failed to load workflow: ${error.message}`);
+                    }
                 }
             }
         }
