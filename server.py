@@ -1482,6 +1482,8 @@ class PromptServer():
             if not workflow_name:
                 return web.Response(status=400, text="Workflow name required")
             
+            logging.info(f"[WORKFLOW] Requested workflow: '{workflow_name}'")
+            
             # Search for workflow file
             search_paths = []
             if args.workflows_dir and os.path.exists(args.workflows_dir):
@@ -1497,20 +1499,28 @@ class PromptServer():
                     os.path.join(workflows_path, workflow_name, f"{workflow_name}.json"),
                     os.path.join(workflows_path, f"{workflow_name}.json")
                 ])
+            
+            logging.info(f"[WORKFLOW] Searching in {len(search_paths)} paths")
+            
             for path in search_paths:
                 try:
+                    logging.info(f"[WORKFLOW] Trying path: {path}")
                     if os.path.exists(path):
                         with open(path, 'r', encoding='utf-8') as f:
                             workflow_data = json.load(f)
                         
-                        logging.info(f"Serving workflow via RunComfy API: {path}")
+                        logging.info(f"[WORKFLOW] Successfully loaded workflow from: {path}")
+                        logging.info(f"[WORKFLOW] Workflow contains {len(workflow_data)} top-level keys")
                         return web.json_response(workflow_data)
+                    else:
+                        logging.info(f"[WORKFLOW] Path does not exist: {path}")
                         
                 except Exception as e:
-                    logging.warning(f"Failed to load workflow from {path}: {e}")
+                    logging.warning(f"[WORKFLOW] Failed to load workflow from {path}: {e}")
                     continue
             
             # No workflow found
+            logging.warning(f"[WORKFLOW] No workflow found for '{workflow_name}' in any search paths")
             return web.Response(status=404, text=f"Workflow '{workflow_name}' not found")
 
     async def setup(self):

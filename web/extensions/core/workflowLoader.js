@@ -20,35 +20,43 @@ async function getWorkflow() {
     const workflowId = urlParams.get('workflow');
     const forceLoad = urlParams.get('force-load');
 
-    if (workflowId && (forceLoad || needLoadPrebuiltWorkflow(workflowId))) {
-        console.log(`Loading workflow: ${workflowId}`);
+    if (workflowId) {
+        console.log(`[WORKFLOW] Requested workflow: '${workflowId}'`);
+        console.log(`[WORKFLOW] Force load parameter: '${forceLoad}'`);
         
-        // Try multiple locations for workflow files
-        const locations = [
-            `../workflows/${workflowId}/${workflowId}.json`,
-            `../external-workflows/${workflowId}/${workflowId}.json`,
-            `../workflows/${workflowId}.json`,
-            `../external-workflows/${workflowId}.json`
-        ];
-        
-        for (const location of locations) {
-            try {
-                console.log(`Trying location: ${location}`);
-                const response = await fetch(location);
-                if (response.ok) {
-                    flow_json = await response.json();
-                    console.log(`Successfully loaded workflow from: ${location}`);
-                    break;
-                } else {
-                    console.log(`Location not found: ${location} (status: ${response.status})`);
+        if (forceLoad || needLoadPrebuiltWorkflow(workflowId)) {
+            console.log(`[WORKFLOW] Loading workflow: ${workflowId}${forceLoad ? ' (force-load)' : ''}`);
+            
+            // Try multiple locations for workflow files
+            const locations = [
+                `../workflows/${workflowId}/${workflowId}.json`,
+                `../external-workflows/${workflowId}/${workflowId}.json`,
+                `../workflows/${workflowId}.json`,
+                `../external-workflows/${workflowId}.json`
+            ];
+            
+            for (const location of locations) {
+                try {
+                    console.log(`[WORKFLOW] Trying location: ${location}`);
+                    const response = await fetch(location);
+                    if (response.ok) {
+                        flow_json = await response.json();
+                        console.log(`[WORKFLOW] Successfully loaded workflow from: ${location}`);
+                        console.log(`[WORKFLOW] Workflow contains ${Object.keys(flow_json).length} top-level keys`);
+                        break;
+                    } else {
+                        console.log(`[WORKFLOW] Location not found: ${location} (status: ${response.status})`);
+                    }
+                } catch (error) {
+                    console.log(`[WORKFLOW] Error trying location ${location}:`, error);
                 }
-            } catch (error) {
-                console.log(`Error trying location ${location}:`, error);
             }
-        }
-        
-        if (!flow_json) {
-            console.error(`Failed to load workflow: ${workflowId} from any location`);
+            
+            if (!flow_json) {
+                console.error(`[WORKFLOW] Failed to load workflow: ${workflowId} from any location`);
+            }
+        } else {
+            console.log(`[WORKFLOW] Workflow ${workflowId} already loaded, skipping (use force-load=true to reload)`);
         }
     }
     return flow_json;
