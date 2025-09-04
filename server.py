@@ -37,7 +37,6 @@ from app.model_manager import ModelFileManager
 from app.custom_node_manager import CustomNodeManager
 from typing import Optional, Union
 from api_server.routes.internal.internal_routes import InternalRoutes
-<<<<<<< HEAD
 import re
 import difflib
 import string
